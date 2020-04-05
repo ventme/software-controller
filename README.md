@@ -1,8 +1,12 @@
 # Vent Me Arduino Software Controller
 
-The vent.me software is ardunio embedded software. The intitial target 
+We need to make software to do this: 
+https://e-vent.mit.edu/controls/high-level-controls/
+** You might need to register with MIT to get access to that. 
 
-vent.me ardunio system board
+The vent.me software is ardunio embedded software.
+
+Ardunio system board
 * ATmega2560 Processor
 * Honeywell TruStability® Board Mount Pressure (1 PSI Differential)
 * ST VNH5019A H-Bridge Motor Driver (<30 amp peak)
