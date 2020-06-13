@@ -156,6 +156,7 @@ void setup() {
   delay(1000);
   
   //Initialize
+  Wire.begin();
   pinMode(HOME_PIN, INPUT_PULLUP);  // Pull up the limit switch
   setupLogger();
   alarm.begin();

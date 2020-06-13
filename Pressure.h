@@ -51,11 +51,10 @@ public:
     plateau_(0.0),
     peep_(0.0) {
 #ifdef USE_VENTME_HW
-    Wire.begin();
     ssc_.setMinRaw(0);
     ssc_.setMaxRaw(16383);
     ssc_.setMinPressure(0.0);
-    ssc_.setMaxPressure(1);
+    ssc_.setMaxPressure(1000);
     ssc_.start();
 #endif
     }
