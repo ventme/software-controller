@@ -33,19 +33,39 @@
 #define Pressure_h
 
 #include "Arduino.h"
+#include "Constants.h"
+#include <SSC.h>
 
 class Pressure {
 public:
+#ifdef USE_VENTME_HW
+  Pressure(): 
+    ssc_(0x28),
+#else
   Pressure(int pin): 
     sense_pin_(pin),
+#endif 
     current_(0.0),
     current_peak_(0.0),
     peak_(0.0),
     plateau_(0.0),
-    peep_(0.0) {}
+    peep_(0.0) {
+#ifdef USE_VENTME_HW
+    Wire.begin();
+    ssc_.setMinRaw(0);
+    ssc_.setMaxRaw(16383);
+    ssc_.setMinPressure(0.0);
+    ssc_.setMaxPressure(1);
+    ssc_.start();
+#endif
+    }
 
   //Get pressure reading
   void read() {
+#ifdef USE_VENTME_HW
+    ssc_.update();
+    float pres = ssc_.pressure();
+#else
     // read the voltage
     int V = analogRead(sense_pin_); 
 
@@ -57,6 +77,7 @@ public:
 
     // convert to cmH20
     pres *= 1.01972;
+#endif
 
     // update peak
     current_peak_ = max(current_peak_, pres);
@@ -86,7 +107,11 @@ public:
   const float& peep() { return peep_; }
 
 private:
+#ifdef USE_VENTME_HW
+  SSC ssc_;
+#else
   int sense_pin_;
+#endif
   float current_;
   float current_peak_;
   float peak_, plateau_, peep_;

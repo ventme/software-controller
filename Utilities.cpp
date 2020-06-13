@@ -73,6 +73,8 @@ float readAc() {
   return map(analogRead(AC_PIN), 0, ANALOG_PIN_MAX, AC_MIN - AC_RES, AC_MAX);
 }
 
+#ifdef USE_VENTME_HW
+#else
 bool readEncoder(const RoboClaw& roboclaw, int& motorPosition) {
   uint8_t robot_status;
   bool valid;
@@ -106,6 +108,6 @@ bool readMotorCurrent(const RoboClaw& roboclaw, int& motorCurrent) {
   const bool valid = roboclaw.ReadCurrents(ROBOCLAW_ADDR, motorCurrent, noSecondMotor);
   return valid;
 }
-
+#endif
 
 }  // namespace utils

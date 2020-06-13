@@ -29,13 +29,19 @@
  * Main Arduino file.
  */
 
-#include "LiquidCrystal.h"
+#include "Constants.h"
+
+#ifdef USE_VENTME_HW
+#include <LiquidCrystal_I2C.h> 
+#else
+#include <LiquidCrystal.h>
 #include "src/thirdparty/RoboClaw/RoboClaw.h"
+#endif 
+
 #include "cpp_utils.h"  // Redefines macros min, max, abs, etc. into proper functions,
                         // should be included after third-party code, before E-Vent includes
 #include "Alarms.h"
 #include "Buttons.h"
-#include "Constants.h"
 #include "Display.h"
 #include "Input.h"
 #include "Logging.h"
@@ -66,26 +72,36 @@ States state;
 bool enteringState;
 float tStateTimer;
 
+#ifdef USE_VENTME_HW
+#else
 // Roboclaw
 RoboClaw roboclaw(&Serial3, 10000);
+#endif
 int motorCurrent, motorPosition = 0;
 
 // LCD Screen
+#ifdef USE_VENTME_HW
+LiquidCrystal_I2C lcd(0x27,20,4);  // set the LCD address to 0x27 for a 20 chars and 4 line display
+#else
 LiquidCrystal lcd(LCD_RS_PIN, LCD_EN_PIN, LCD_D4_PIN, dLCD_D5_PIN, LCD_D6_PIN, LCD_D7_PIN);
+#endif
 display::Display displ(&lcd, AC_MIN);
 
 // Alarms
 alarms::AlarmManager alarm(BEEPER_PIN, SNOOZE_PIN, LED_ALARM_PIN, &displ, &cycleCount);
 
 // Pressure
+#ifdef USE_VENTME_HW
+Pressure pressureReader;
+#else
 Pressure pressureReader(PRESS_SENSE_PIN);
-
+#endif 
 // Buttons
 buttons::PressHoldButton offButton(OFF_PIN, 2000);
 buttons::DebouncedButton confirmButton(CONFIRM_PIN);
 
 // Logger
-logging::Logger logger(true/*Serial*/, false/*SD*/, false/*labels*/, ",\t"/*delim*/);
+logging::Logger logger(true/*Serial*/, false/*SD*/, true/*labels*/, ",\t"/*delim*/);
 
 // Knobs
 struct Knobs {
@@ -149,16 +165,22 @@ void setup() {
   knobs.begin();
   tCycleTimer = now();
 
+#ifdef USE_VENTME_HW
+#else
   roboclaw.begin(ROBOCLAW_BAUD);
   roboclaw.SetM1MaxCurrent(ROBOCLAW_ADDR, ROBOCLAW_MAX_CURRENT);
   roboclaw.SetM1VelocityPID(ROBOCLAW_ADDR, VKP, VKI, VKD, QPPS);
   roboclaw.SetM1PositionPID(ROBOCLAW_ADDR, PKP, PKI, PKD, KI_MAX, DEADZONE, MIN_POS, MAX_POS);
   roboclaw.SetEncM1(ROBOCLAW_ADDR, 0);  // Zero the encoder
+#endif
 }
 
 //////////////////
 ////// Loop //////
 //////////////////
+
+#define logTimerThresh 10000
+uint8_t logTimer = 0;
 
 void loop() {
   if (DEBUG) {
@@ -170,11 +192,19 @@ void loop() {
 
   // All States
   tLoopTimer = now();  // Start the loop timer
-  logger.update();
+
+  if (millis() - logTimer >= logTimerThresh) { // TODO XXX this doesnt do shit
+    logger.update();
+    logTimer = millis();
+  }
+
   knobs.update();
   calculateWaveform();
+#ifdef USE_VENTME_HW
+#else
   readEncoder(roboclaw, motorPosition);  // TODO handle invalid reading
   readMotorCurrent(roboclaw, motorCurrent);
+#endif
   pressureReader.read();
   handleErrors();
   alarm.update();
@@ -182,7 +212,10 @@ void loop() {
   offButton.update();
 
   if (offButton.wasHeld()) {
+#ifdef USE_VENTME_HW
+#else
     goToPositionByDur(roboclaw, BAG_CLEAR_POS, motorPosition, MAX_EX_DURATION);
+#endif
     setState(OFF_STATE);
     alarm.allOff();
   }
@@ -192,7 +225,10 @@ void loop() {
 
     case DEBUG_STATE:
       // Stop motor
+#ifdef USE_VENTME_HW
+#else
       roboclaw.ForwardM1(ROBOCLAW_ADDR, 0);
+#endif
       break;
 
     case OFF_STATE: 
@@ -209,7 +245,10 @@ void loop() {
         const float tNow = now();
         tPeriodActual = tNow - tCycleTimer;
         tCycleTimer = tNow;  // The cycle begins at the start of inspiration
+#ifdef USE_VENTME_HW
+#else
         goToPositionByDur(roboclaw, volume2ticks(knobs.volume()), motorPosition, tIn);
+#endif
         cycleCount++;
       }
 
@@ -231,7 +270,10 @@ void loop() {
     case EX_STATE:
       if (enteringState) {
         enteringState = false;
+#ifdef USE_VENTME_HW
+#else
         goToPositionByDur(roboclaw, BAG_CLEAR_POS, motorPosition, tEx - (now() - tCycleTimer));
+#endif
       }
 
       if (abs(motorPosition - BAG_CLEAR_POS) < BAG_CLEAR_TOL) {
@@ -273,7 +315,10 @@ void loop() {
     case PREHOME_STATE:
       if (enteringState) {
         enteringState = false;
+#ifdef USE_VENTME_HW
+#else
         roboclaw.BackwardM1(ROBOCLAW_ADDR, HOMING_VOLTS);
+#endif
       }
 
       if (homeSwitchPressed()) {
@@ -284,14 +329,20 @@ void loop() {
     case HOMING_STATE:
       if (enteringState) {
         enteringState = false;
+#ifdef USE_VENTME_HW
+#else
         roboclaw.ForwardM1(ROBOCLAW_ADDR, HOMING_VOLTS);
+#endif
       }
       
       if (!homeSwitchPressed()) {
+#ifdef USE_VENTME_HW
+#else
         roboclaw.ForwardM1(ROBOCLAW_ADDR, 0);
         delay(HOMING_PAUSE * 1000);  // Wait for things to settle
         roboclaw.SetEncM1(ROBOCLAW_ADDR, 0);  // Zero the encoder
         setState(IN_STATE);
+#endif        
       }
       break;
   }

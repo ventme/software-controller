@@ -33,11 +33,17 @@
 #define Utilities_h
 
 #include "Arduino.h"
+#include "Constants.h"
+
+#ifdef USE_VENTME_HW
+#include <LiquidCrystal_I2C.h> 
+#else
+#include <LiquidCrystal.h>
 #include "src/thirdparty/RoboClaw/RoboClaw.h"
+#endif 
 
 #include "cpp_utils.h"
 
-#include "Constants.h"
 
 
 namespace utils {
@@ -82,6 +88,8 @@ float readBpm();          // Reads set bpm from the bpm pot
 float readIeRatio();      // Reads set IE ratio from the IE pot
 float readAc();           // Reads set AC mode trigger sensitivity from the AC pot
 
+#ifdef USE_VENTME_HW
+#else
 /// Motor ///
 // Read the encoder and return whether the reading is valid
 bool readEncoder(const RoboClaw& roboclaw, int& motorPosition);
@@ -94,7 +102,7 @@ void goToPositionByDur(const RoboClaw& roboclaw, const long& goal_pos, const lon
 
 // Read the motor current and return whether the reading is valid
 bool readMotorCurrent(const RoboClaw& roboclaw, int& motorCurrent);
-
+#endif
 
 }  // namespace utils
 

@@ -36,7 +36,12 @@ namespace display {
 /// Display ///
 
 void Display::begin() {
+
+#ifdef USE_VENTME_HW
+  lcd_->begin(kWidth, kHeight, 0x00); // 5x8 dots
+#else
   lcd_->begin(kWidth, kHeight);
+#endif
   lcd_->noCursor(); 
   update();
 }
@@ -195,7 +200,11 @@ String Display::toString(const DisplayKey& key, const T& value) const {
 template <typename T>
 void Display::write(const int& row, const int& col, const T& printable) {
   lcd_->setCursor(col, row);
+  #ifdef USE_VENTME_HW
   lcd_->print(printable);
+  #else
+  lcd_->print(printable);
+  #endif
 }
 
 

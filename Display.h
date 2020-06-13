@@ -33,10 +33,15 @@
 #define Display_h
 
 #include "Arduino.h"
-#include <LiquidCrystal.h>
 
 #include "Utilities.h"
+#include "Constants.h"
 
+#ifdef USE_VENTME_HW
+#include <LiquidCrystal_I2C.h> 
+#else
+#include <LiquidCrystal.h>
+#endif
 
 namespace display {
 
@@ -118,7 +123,11 @@ class Display {
 
 public:
   // Constructor, save a pointer to the (global) display object
+#ifdef USE_VENTME_HW
+  Display(LiquidCrystal_I2C* lcd, const float& trigger_threshold):
+#else
   Display(LiquidCrystal* lcd, const float& trigger_threshold):
+#endif
       lcd_(lcd),
       trigger_threshold_(trigger_threshold),
       animation_(1000, 0.5) {
@@ -184,7 +193,11 @@ public:
   inline String getLabel(const DisplayKey& key) const { return elements_[key].label; };
 
 private:
+  #ifdef USE_VENTME_HW
+  LiquidCrystal_I2C* lcd_;
+  #else
   LiquidCrystal* lcd_;
+  #endif
   const float trigger_threshold_;
   TextAnimation animation_;
   Element elements_[NUM_KEYS];
