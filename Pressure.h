@@ -53,8 +53,8 @@ public:
 #ifdef USE_VENTME_HW
     ssc_.setMinRaw(0);
     ssc_.setMaxRaw(16383);
-    ssc_.setMinPressure(0.0);
-    ssc_.setMaxPressure(1000);
+    ssc_.setMinPressure(-1);
+    ssc_.setMaxPressure(+1);
     ssc_.start();
 #endif
     }
@@ -63,7 +63,10 @@ public:
   void read() {
 #ifdef USE_VENTME_HW
     ssc_.update();
-    float pres = ssc_.pressure();
+    float pres = ssc_.pressure(); // read +/- 1 psi
+    // 1 psi = 703 mmH2O
+    // -1 psi = 703 mmH2O
+    pres *= 703.0889; // scale to mmH2O TODO - is this right? 
 #else
     // read the voltage
     int V = analogRead(sense_pin_); 
