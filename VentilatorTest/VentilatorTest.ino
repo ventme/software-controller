@@ -16,19 +16,29 @@ void setup() {
 
   EncoderInit();
   MotorInit();
+
+  MotorHome();
+  EncoderClearCount();
+  delay(2000);
 }
 
 int motorTimerStart = 0;
 #define motorTimerThresh  100
 
+int printTimerStart = 0;
+#define printTimerThresh 100
+
 void loop() {
-  Serial.print(digitalRead(8));
-  Serial.print(",");
-  Serial.print(digitalRead(9));
-  Serial.print(",");
-  Serial.print(EncoderGetVelocity());
-  Serial.print(",");
-  Serial.println(EncoderGetCount());
+  if (millis() - printTimerStart > printTimerThresh) {
+    Serial.print(digitalRead(8));
+    Serial.print(",");
+    Serial.print(digitalRead(9));
+    Serial.print(",");
+    Serial.print(EncoderGetVelocity());
+    Serial.print(",");
+    Serial.println(EncoderGetCount());
+    printTimerStart = millis();
+  }
 
   if (millis() - motorTimerStart > motorTimerThresh) {
     if ( MotorDirection == 0 )  // motor goes one way
@@ -43,12 +53,15 @@ void loop() {
       MotorBackward(20);
     }
     motorTimerStart = millis();
-   if ((MotorDirection == 1 && digitalRead(8)) 
-    || (MotorDirection == 0 && digitalRead(9)))
+   if (MotorDirection == 1 && digitalRead(8)) {
       MotorDirection = !MotorDirection;
+   }
+   if (MotorDirection == 0 && digitalRead(9)){
+      MotorDirection = !MotorDirection;
+   }
   }
   
-  delay(10);   // in microprocessor land this is very bad practice... we should always read the amount of time the chip has been running and us it for timing.. when this function happens the chip does NOTHING .. we have only one core.. .. no forking.. think about the oldschool assemblh days... 
+  delay(1);  
  
 
 }

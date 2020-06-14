@@ -65,7 +65,6 @@ const float HOMING_VOLTS = 30;  // The speed (0-255) in volts to use during homi
 const float HOMING_PAUSE = 1.0; // The pause time (s) during homing to ensure stability
 const int BAG_CLEAR_POS = 50;   // The goal position (clicks) to retract to clear the bag
 const int BAG_CLEAR_TOL = 10;   // The tolerance (clicks) to consider clear of bag
-const uint8_t HOMING_PWM = 30;
 // Pins
 #ifdef USE_VENTME_HW
 // Port	    Arduino Pin	Connection
@@ -99,7 +98,7 @@ const int VOL_PIN = A0;
 const int BPM_PIN = A1;
 const int IE_PIN = A2;
 const int AC_PIN = A3;              // TODO XXX not above? Same as Pressure Pot? 
-const int HOME_PIN = 35;            // TODO XXX not above? 
+const int HOME_PIN = 9;            // TODO XXX not above? 
 const int BEEPER_PIN = 39;          // PG2 aka Digital pin 39 @ https://www.arduino.cc/en/Hacking/PinMapping2560
 const int SNOOZE_PIN = 6;           // PH3 aka Digital pin 6
 const int CONFIRM_PIN = 5;
@@ -114,6 +113,9 @@ const int HBRIDGE_B_PIN = 37;
 const int HBRIDGE_PWM_PIN = 7;
 const int ENDSTOP_A_PIN = 8;
 const int ENDSTOP_B_PIN = 9;
+
+const uint8_t HOMING_PWM = 25;
+
 #else
 const int VOL_PIN = A0;
 const int BPM_PIN = A1;
