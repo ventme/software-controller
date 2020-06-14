@@ -33,6 +33,8 @@
 
 #ifdef USE_VENTME_HW
 #include <LiquidCrystal_I2C.h> 
+#include "Encoder.h"
+#include "Motor.h"
 #else
 #include <LiquidCrystal.h>
 #include "src/thirdparty/RoboClaw/RoboClaw.h"
@@ -66,6 +68,8 @@ float tPeriod;         // Calculated time (s) since tCycleTimer for end of cycle
 float tPeriodActual;   // Actual time (s) since tCycleTimer at end of cycle (for logging)
 float tLoopTimer;      // Absolute time (s) at start of each control loop iteration
 float tLoopBuffer;     // Amount of time (s) left at end of each loop
+
+float velocity;
 
 // States
 States state;
@@ -156,7 +160,10 @@ void setup() {
   delay(1000);
   
   //Initialize
-  Wire.begin();
+#ifdef USE_VENTME_HW
+  Wire.begin(); // needs to happen before display and pressure are used
+#endif 
+
   pinMode(HOME_PIN, INPUT_PULLUP);  // Pull up the limit switch
   setupLogger();
   alarm.begin();
@@ -167,6 +174,9 @@ void setup() {
   tCycleTimer = now();
 
 #ifdef USE_VENTME_HW
+  EncoderInit();
+  EncoderClearCount();
+  MotorInit();
 #else
   roboclaw.begin(ROBOCLAW_BAUD);
   roboclaw.SetM1MaxCurrent(ROBOCLAW_ADDR, ROBOCLAW_MAX_CURRENT);
@@ -180,9 +190,6 @@ void setup() {
 ////// Loop //////
 //////////////////
 
-#define logTimerThresh 10000
-uint8_t logTimer = 0;
-
 void loop() {
   if (DEBUG) {
     if (Serial.available() > 0) {
@@ -193,15 +200,13 @@ void loop() {
 
   // All States
   tLoopTimer = now();  // Start the loop timer
-
-  if (millis() - logTimer >= logTimerThresh) { // TODO XXX this doesnt do shit
-    logger.update();
-    logTimer = millis();
-  }
+  velocity = EncoderGetVelocity();
+  logger.update();
 
   knobs.update();
   calculateWaveform();
 #ifdef USE_VENTME_HW
+  motorPosition = EncoderGetCount();
 #else
   readEncoder(roboclaw, motorPosition);  // TODO handle invalid reading
   readMotorCurrent(roboclaw, motorCurrent);
@@ -227,6 +232,7 @@ void loop() {
     case DEBUG_STATE:
       // Stop motor
 #ifdef USE_VENTME_HW
+      MotorForward(0);
 #else
       roboclaw.ForwardM1(ROBOCLAW_ADDR, 0);
 #endif
@@ -317,6 +323,7 @@ void loop() {
       if (enteringState) {
         enteringState = false;
 #ifdef USE_VENTME_HW
+        MotorBackward(HOMING_PWM);
 #else
         roboclaw.BackwardM1(ROBOCLAW_ADDR, HOMING_VOLTS);
 #endif
@@ -331,6 +338,7 @@ void loop() {
       if (enteringState) {
         enteringState = false;
 #ifdef USE_VENTME_HW
+        MotorForward(HOMING_PWM);
 #else
         roboclaw.ForwardM1(ROBOCLAW_ADDR, HOMING_VOLTS);
 #endif
@@ -338,12 +346,15 @@ void loop() {
       
       if (!homeSwitchPressed()) {
 #ifdef USE_VENTME_HW
+        MotorForward(0);
+        delay(HOMING_PAUSE * 1000);  // Wait for things to settle
+        EncoderClearCount();
 #else
         roboclaw.ForwardM1(ROBOCLAW_ADDR, 0);
         delay(HOMING_PAUSE * 1000);  // Wait for things to settle
         roboclaw.SetEncM1(ROBOCLAW_ADDR, 0);  // Zero the encoder
-        setState(IN_STATE);
 #endif        
+        setState(IN_STATE);
       }
       break;
   }
@@ -426,6 +437,9 @@ void setupLogger() {
   logger.addVar("State", (int*)&state);
   logger.addVar("Pos", &motorPosition, 3);
   logger.addVar("Pressure", &pressureReader.get(), 6);
+#ifdef USE_VENTME_HW
+  logger.addVar("Velocity", &velocity);
+#endif
   // logger.addVar("Period", &tPeriodActual);
   // logger.addVar("tLoopBuffer", &tLoopBuffer, 6, 4);
   // logger.addVar("Current", &motorCurrent, 3);

@@ -65,7 +65,7 @@ const float HOMING_VOLTS = 30;  // The speed (0-255) in volts to use during homi
 const float HOMING_PAUSE = 1.0; // The pause time (s) during homing to ensure stability
 const int BAG_CLEAR_POS = 50;   // The goal position (clicks) to retract to clear the bag
 const int BAG_CLEAR_TOL = 10;   // The tolerance (clicks) to consider clear of bag
-
+const uint8_t HOMING_PWM = 30;
 // Pins
 #ifdef USE_VENTME_HW
 // Port	    Arduino Pin	Connection
@@ -73,40 +73,47 @@ const int BAG_CLEAR_TOL = 10;   // The tolerance (clicks) to consider clear of b
 // PF1(ADC1)	A1	BPM Pot
 // PF2(ADC2)	A2	IE Ratio Pot
 // PF3(ADC3)	A3	Pressure Pot          TODO XXX - AC PIN? 
-// PF4(ADC4)	A4	Pressure Analog 
+// PF4(ADC4)	A4	Pressure Analog       This is using the i2c digital interface
 // PF5(ADC5)	A5	Misc Analog           TODO XXX - not in reference design
 // PF6(ADC6)	A6	Mode Select           TODO XXX - not in reference design
 // PE3	      5	  Confirm 
-// PH3	      6	  Silence
-// PC1	      36	Emergency
-// PC2	      35	Misc Button 0
-// PC3	      34	Misc Button 1
+// PH3	      6	  Silence               aka snooze
+// PC1	      36	Emergency             TODO
+// PC2	      35	Misc Button 0         Now the home switch
+// PC3	      34	Misc Button 1         TODO
 // PH5	      8	  Endstop A
 // PH6	      9	  Endstop B
 // PC6	      31	Led 0
-// PC7	      30	Led 1
-// PJ0	      14	Led 2
-// PJ1	      15	External Alarm
+// PC7	      30	Led 1                 TODO
+// PJ0	      14	Led 2                 TODO
+// PJ1	      15	External Alarm        TODO
 // PD7	      38	Hbridge A
 // PC0	      37	HBridge B
 // PH4	      7	  Hbridge PWM
 // PE4	      2	  Motor Encoder A
 // PE5	      3	  Motor Encoder B
-// PD2	      19	Hall Sensor A
-// PD3	      18	Hall Sensor B
+// PD2	      19	Hall Sensor A           TODO
+// PD3	      18	Hall Sensor B           TODO
 
 const int VOL_PIN = A0;
 const int BPM_PIN = A1;
 const int IE_PIN = A2;
 const int AC_PIN = A3;              // TODO XXX not above? Same as Pressure Pot? 
-const int PRESS_SENSE_PIN = A4;
-const int HOME_PIN = 10;            // TODO XXX not above? 
-const int BEEPER_PIN = 11;          // TODO XXX not above?
-const int SNOOZE_PIN = 43;          // TODO XXX not above?
+const int HOME_PIN = 35;            // TODO XXX not above? 
+const int BEEPER_PIN = 39;          // PG2 aka Digital pin 39 @ https://www.arduino.cc/en/Hacking/PinMapping2560
+const int SNOOZE_PIN = 6;           // PH3 aka Digital pin 6
 const int CONFIRM_PIN = 5;
 const int SD_SELECT = 53;           // TODO XXX same as mode select above? 
 const int OFF_PIN = 45;             // TODO XXX not above?
-const int LED_ALARM_PIN = 12;
+const int LED_ALARM_PIN = 31;       // TODO XXX Which LED for alarm? use LED0 for now
+
+const int ENCODER_A_PIN = 2;
+const int ENCODER_B_PIN = 3;
+const int HBRIDGE_A_PIN = 38;
+const int HBRIDGE_B_PIN = 37;
+const int HBRIDGE_PWM_PIN = 7;
+const int ENDSTOP_A_PIN = 8;
+const int ENDSTOP_B_PIN = 9;
 #else
 const int VOL_PIN = A0;
 const int BPM_PIN = A1;

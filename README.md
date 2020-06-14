@@ -43,3 +43,10 @@ The following waveform diagram is a visual explanation of the key cycle paramete
                                                                            
          tCycleTimer                                                       
 
+# Vent Me PCB
+In Constants.h, add #define USE_VENTME_HW to use the VENTME PCB
+
+## Known Issues
+* No Motor Current ADC available in PCB rev ?
+* Motor Overcurrent Alarm currently disabled
+  
