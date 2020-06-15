@@ -32,6 +32,8 @@
 #ifndef Constants_h
 #define Constants_h
 
+#include "Arduino.h"
+
 #define USE_VENTME_HW
 
 // States
