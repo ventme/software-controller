@@ -100,7 +100,7 @@ const int VOL_PIN = A0;
 const int BPM_PIN = A1;
 const int IE_PIN = A2;
 const int AC_PIN = A3;              // TODO XXX not above? Same as Pressure Pot? 
-const int HOME_PIN = 9;            // TODO XXX not above? 
+const int HOME_PIN = 8;            // TODO XXX not above? 
 const int BEEPER_PIN = 39;          // PG2 aka Digital pin 39 @ https://www.arduino.cc/en/Hacking/PinMapping2560
 const int SNOOZE_PIN = 6;           // PH3 aka Digital pin 6
 const int CONFIRM_PIN = 5;
@@ -116,7 +116,7 @@ const int HBRIDGE_PWM_PIN = 7;
 const int ENDSTOP_A_PIN = 8;
 const int ENDSTOP_B_PIN = 9;
 
-const uint8_t HOMING_PWM = 25;
+const uint8_t HOMING_PWM = 30;
 
 #else
 const int VOL_PIN = A0;

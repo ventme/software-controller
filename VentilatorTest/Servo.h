@@ -3,7 +3,7 @@
 
 void ServoInit();
 void ServoClearCount();
-float ServoGetVelocity();
+int ServoGetVelocity();
 void ServoSetTargetPosition(int setpoint);
 void ServoTask();
 double ServoGetTargetPosition();

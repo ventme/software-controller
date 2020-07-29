@@ -11,63 +11,50 @@ void setup() {
   pinMode(8, INPUT);
   pinMode(9, INPUT);
 
-  Serial.begin(115200);  // for debugging 
-  Serial.println("booting");
+  Serial.begin(115200);  
+//  Serial.println("booting");
 
   ServoInit();
 
   MotorHome();// ServoTask not running yet, homing is safe
+  delay(100);
   ServoSetTargetPosition(0);
   EncoderClearCount();
   delay(2000);
 }
 
-int motorTimerStart = 0;
+uint32_t motorTimerStart = 0;
 #define motorTimerThresh  2000
 
-int printTimerStart = 0;
-#define printTimerThresh 100
+uint32_t printTimerStart = 0;
+#define printTimerThresh 10
 
 void loop() {
   ServoTask();
 
   if (millis() - printTimerStart > printTimerThresh) {
-    Serial.print(ServoGetTargetPosition());
-    Serial.print(",");
-    Serial.print(EncoderGetCount());
-    Serial.print(",");
-    Serial.println(ServoGetOutput());
+     Serial.print(ServoGetOutput());
+     Serial.print(",");
+     Serial.print(ServoGetVelocity());
+     Serial.print(",");
+     Serial.print(ServoGetTargetPosition());
+     Serial.print(",");
+     Serial.println(EncoderGetCount());
     printTimerStart = millis();
   }
 
-  // if (millis() - motorTimerStart > motorTimerThresh) {
-  //   motorTimerStart = millis();
-  //   MotorDirection = !MotorDirection;
-  //   if ( MotorDirection == 0 )  // motor goes one way
-  //   {
-  //     ServoSetTargetPosition(100);
-  //   }
-
-  //   if ( MotorDirection == 1 )  // or the other 
-  //   {
-  //     ServoSetTargetPosition(10);
-  //   }
-
-  // }
-
-
-  if (millis() - motorTimerStart > 10*motorTimerThresh) {
-    ServoSetTargetPosition(0);
-    motorTimerStart = 0;
+  if (millis() < 10000)
+  {
+    ServoSetTargetPosition(700);
   }
-  else if (millis() - motorTimerStart > 5*motorTimerThresh) {
-    ServoSetTargetPosition(10);
-  }
-  else if (millis() - motorTimerStart > motorTimerThresh) {
+  else if (millis() < 20000)
+  {
     ServoSetTargetPosition(100);
+  }
+  else if (millis() < 30000)
+  {
+    ServoSetTargetPosition(500);
   }
 
   // delay(1);  
 }
-
-
