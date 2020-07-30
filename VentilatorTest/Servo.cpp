@@ -1,6 +1,6 @@
 #include "Servo.h"
 
-#include <PID_v1.h>
+#include <FastPID.h>
 
 //Define Variables we'll be connecting to
 double Setpoint, Input, Output;
@@ -10,7 +10,7 @@ const float kP = 10;
 const float kI = 0;
 const float kD = 12;
 
-PID myPID(&Input, &Output, &Setpoint, kP, kI, kD, DIRECT);
+FastPID myPID(kP, kI, kD, 0.001, 6, true);
 
 int lastMotorEncoderCount = 0;
 int timer1_counter = 65411; // 65536 - 16MHz/128/1000Hz (64511 for 0.001) 
@@ -32,9 +32,6 @@ void ServoInit(){
     MotorInit();
     EncoderInit();   
 
-    myPID.SetMode(AUTOMATIC);
-    myPID.SetOutputLimits(-100,100);
-    myPID.SetSampleTime(1); // 10 msec
 }
 
 void ServoClearCount(){
@@ -68,8 +65,17 @@ void ServoTask(){
     if (timeISRFired) {
         timeISRFired = 0;
         Input = EncoderGetCount();
-        myPID.Compute();
 
+        // This is bounded regulation. When we're within a few encoder ticks, just bail, we good
+        if (abs(Setpoint - Input) > 1)
+        {
+          Output = myPID.step(Setpoint, Input);
+        }
+        else
+        { 
+          Output = 0; 
+        }
+        
         if (Output >= 0)
             MotorForward(abs(Output));
         else
